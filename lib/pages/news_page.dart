@@ -128,12 +128,15 @@ class _NewsPageState extends State<NewsPage> {
     );
   }
   _buildListView(List<ListInfo> items){
-    return ListView.builder(
-        shrinkWrap: true,
-        itemCount: items.length,
-        itemBuilder: (context, index){
-          return _buildItem(items[index]);
-        }
+    return Container(
+      padding: EdgeInsets.fromLTRB(5, 0, 5, 200),
+      child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: items.length,
+          itemBuilder: (context, index){
+            return _buildItem(items[index]);
+          }
+      ),
     );
   }
   _buildItem(ListInfo item) {

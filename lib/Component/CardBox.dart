@@ -11,7 +11,7 @@ class CardBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width,
-      padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+      padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(8.0),

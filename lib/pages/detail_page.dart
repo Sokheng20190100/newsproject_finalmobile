@@ -1,6 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slider_drawer/flutter_slider_drawer.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:newsproject_finalmobile/Component/delete_page.dart';
+import 'package:newsproject_finalmobile/Component/drawerslider.dart';
 import 'package:newsproject_finalmobile/model/listinfo_news_model.dart';
+import 'package:newsproject_finalmobile/pages/news_page.dart';
+import 'package:newsproject_finalmobile/pages/update_news_page.dart';
+import 'package:newsproject_finalmobile/repos/Insert_page_repo.dart';
 
 class DetailPage extends StatefulWidget {
   final ListInfo user;
@@ -11,14 +18,22 @@ class DetailPage extends StatefulWidget {
   _DetailPageState createState() => _DetailPageState();
 }
 
+
 class _DetailPageState extends State<DetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar,
+      // appBar: _buildAppBar,
       body: _buildBody,
     );
   }
+  var _titleCtrl = TextEditingController();
+  var _captionCtrl = TextEditingController();
+  var _imageCtrl = TextEditingController();
+  var _decsCtrl = TextEditingController();
+
+  ListInfo _selectedListInfo = ListInfo();
+  bool _isUpdating = false;
 
   get _buildAppBar {
     return AppBar(
@@ -36,7 +51,9 @@ class _DetailPageState extends State<DetailPage> {
       centerTitle: true,
       actions: [
         IconButton(
-            onPressed: () {},
+            onPressed: () {
+              _showAlertDialog(widget.user);
+            },
             icon: Icon(
               Icons.more_horiz,
               color: Colors.black,
@@ -55,19 +72,55 @@ class _DetailPageState extends State<DetailPage> {
         child: Column(
           // mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: MediaQuery.of(context).size.width,
-              height: 450,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                    image: NetworkImage(
-                      "${widget.user.image}",
+            Stack(
+              children: <Widget>[
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: 450,
+                  // margin: EdgeInsets.fromLTRB(1, 0, 1, 0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40),
                     ),
-                    fit: BoxFit.cover),
-              ),
+                    image: DecorationImage(
+                        image: NetworkImage(
+                          "${widget.user.image}",
+                        ),
+                        fit: BoxFit.cover),
+                  ),
+                ),
+                Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.arrow_back,
+                          color: Colors.brown,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      IconButton(
+                          onPressed: () {
+                            _showAlertDialog(widget.user);
+                          },
+                          icon: Icon(
+                            Icons.more_horiz,
+                            color: Colors.brown,
+                          )),
+
+                    ],
+
+                  ),
+                ),
+              ],
             ),
+            SizedBox(height: 15),
             Padding(
-              padding: const EdgeInsets.only(left: 8.0),
+              padding: const EdgeInsets.only(left: 25),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -83,8 +136,9 @@ class _DetailPageState extends State<DetailPage> {
                 ],
               ),
             ),
+            SizedBox(height: 5),
             Padding(
-              padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+              padding: const EdgeInsets.only(left: 20.0, right: 10.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -125,8 +179,11 @@ class _DetailPageState extends State<DetailPage> {
                 ],
               ),
             ),
+            SizedBox(height: 20),
             Row(
+
               children: [
+                SizedBox(width: 15),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Container(
@@ -212,13 +269,27 @@ class _DetailPageState extends State<DetailPage> {
               ],
             ),
             Container(
-              margin: EdgeInsets.only(top: 40, left: 8.0, right: 8.0),
+              margin: EdgeInsets.only(top: 40, left: 25, right: 25, bottom: 50),
               child: Column(
                 children: [
+                  Container(
+                    alignment: Alignment.center,
+                    child: Text(
+                      "Detail",
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontFamily: 'RaleWayLight',
+                        color: Color(0xFF082796),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
                   Container(
                     width: MediaQuery.of(context).size.width,
                     child: Text(
                       "${widget.user.decs}",
+                      textAlign: TextAlign.justify,
                       style:
                       TextStyle(fontSize: 18, fontFamily: 'RaleWayeLight'),
                     ),
@@ -226,6 +297,67 @@ class _DetailPageState extends State<DetailPage> {
                 ],
               ),
             )
+          ],
+        ),
+      ),
+    );
+  }
+  _showAlertDialog(ListInfo item){
+    showDialog(
+        context: context,
+        builder: (context){
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            content: Container(
+              height: 180, alignment: Alignment.center,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildMenu("Edit", icon: Icons.edit, onTap: (){
+                    _titleCtrl.text = item.title;
+                    _captionCtrl.text = item.caption;
+                    _imageCtrl.text = item.image;
+                    _decsCtrl.text = item.decs;
+
+                    setState(() {
+                      _selectedListInfo = item;
+                      _isUpdating = false;
+                    });
+                    updateListInfo(_selectedListInfo).then((value) {
+                      Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) => UpdatePage()));
+                    });
+
+                  }),
+                  _buildMenu("Delete", icon: Icons.delete, onTap: (){
+                    deleteListInfo(item).then((value) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => DeletePage(),
+                        ),
+                      );
+                    });
+                  }),
+                ],
+              ),
+            ),
+          );
+        });
+  }
+  _buildMenu(String text, {IconData icon,Function onTap}){
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        color: Colors.grey.withOpacity(0.1),
+        margin: EdgeInsets.only(bottom: 5),
+        height: 50,
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(text),
+            Icon(icon),
           ],
         ),
       ),
